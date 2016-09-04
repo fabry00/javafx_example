@@ -1,6 +1,8 @@
 package com.javafxexample;
 
-import com.javafxexample.config.View;
+import com.javafxexample.config.AppImage;
+import com.javafxexample.config.AppView;
+import com.javafxexample.config.General;
 import com.javafxexample.controller.PersonEditDialogController;
 import com.javafxexample.controller.PersonOverviewController;
 import com.javafxexample.model.Person;
@@ -11,6 +13,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Modality;
@@ -68,8 +71,11 @@ public class App extends Application {
         logger.debug("Start application");
 
         this.primaryStage = stage;
-        this.primaryStage.setTitle("AddressApp");
+        this.primaryStage.setTitle(General.APP_TITLE);
 
+        // Set the application icon.
+        this.primaryStage.getIcons().add(new Image(AppImage.APP_ICON));
+    
         initRootLayout();
 
         showPersonOverview();
@@ -84,7 +90,7 @@ public class App extends Application {
         try {
             // Load root layout from fxml file.
             FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getViewURL(View.MAIN_VIEW));
+            loader.setLocation(getViewURL(AppView.MAIN_VIEW));
             rootLayout = (BorderPane) loader.load();
 
             // Show the scene containing the root layout.
@@ -104,7 +110,7 @@ public class App extends Application {
         try {
             // Load person overview.
             FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getViewURL(View.PERSON_VIEW));
+            loader.setLocation(getViewURL(AppView.PERSON_VIEW));
             AnchorPane personOverview = (AnchorPane) loader.load();
 
             // Set person overview into the center of root layout.
@@ -149,7 +155,7 @@ public class App extends Application {
         try {
             // Load the fxml file and create a new stage for the popup dialog.
             FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getViewURL(View.PERSON_EDIT_VIEW));
+            loader.setLocation(getViewURL(AppView.PERSON_EDIT_VIEW));
             AnchorPane page = (AnchorPane) loader.load();
 
             // Create the dialog Stage.
