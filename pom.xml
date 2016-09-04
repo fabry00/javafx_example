@@ -145,8 +145,8 @@
                                     <application name="${project.name}" mainClass="${exec.mainClass}" />
                                     <resources>
                                         <fileset dir="${project.build.directory}" includes="*.jar" />
-<!--                                        <fileset dir="${project.build.directory}/dependency"
-                                                 includes="*.jar" />-->
+                                        <!--                                        <fileset dir="${project.build.directory}/dependency"
+                                        includes="*.jar" />-->
                                     </resources>
                                     <!-- set your jvm args-->
                                     <platform javafx="${javafx.version}+">
@@ -198,6 +198,11 @@
             <version>${javafx.version}</version>
             <systemPath>${java.home}/lib/ext/jfxrt.jar</systemPath>
             <scope>system</scope>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.17</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

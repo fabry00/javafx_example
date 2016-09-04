@@ -1,24 +1,23 @@
 package com.javafxexample;
 
+import com.javafxexample.config.View;
 import java.io.IOException;
 import java.net.URL;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import org.apache.log4j.Logger;
 
 /**
  *
- * @author moscac
+ * @author user
  */
 public class App extends Application {
-
-    private static final String MAIN_VIEW = "view/Main.fxml";
-    private static final String PERSON_VIEW = "view/PersonOverview.fxml";
-
+    
+    final static Logger logger = Logger.getLogger(App.class);
     private Stage primaryStage;
     private BorderPane rootLayout;
 
@@ -36,6 +35,8 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
+        logger.debug("Start application");
+        
         this.primaryStage = stage;
         this.primaryStage.setTitle("AddressApp");
 
@@ -43,22 +44,17 @@ public class App extends Application {
 
         showPersonOverview();
 
-        /*Parent root = FXMLLoader.load(getClass().getResource(MAIN_VIEW));
-
-        Scene scene = new Scene(root);
-
-        stage.setScene(scene);
-        stage.show();*/
     }
 
     /**
      * Initializes the root layout.
      */
     public void initRootLayout() {
+        logger.debug("initRootLayout");
         try {
             // Load root layout from fxml file.
             FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getViewURL(MAIN_VIEW));
+            loader.setLocation(getViewURL(View.MAIN_VIEW));
             rootLayout = (BorderPane) loader.load();
 
             // Show the scene containing the root layout.
@@ -74,10 +70,11 @@ public class App extends Application {
      * Shows the person overview inside the root layout.
      */
     public void showPersonOverview() {
+        logger.debug("showPersonOverview");
         try {
             // Load person overview.
             FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getViewURL(PERSON_VIEW));
+            loader.setLocation(getViewURL(View.PERSON_VIEW));
             AnchorPane personOverview = (AnchorPane) loader.load();
 
             // Set person overview into the center of root layout.
@@ -101,10 +98,9 @@ public class App extends Application {
         URL url = getClass().getResource(view);
         if(url == null)
         {
-            System.err.println("View not found: "+view);
+            logger.error("View not found: "+view);
             System.exit(-1);
-        }
-        
+        }        
         return url;
     }
 }
