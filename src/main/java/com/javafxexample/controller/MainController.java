@@ -1,4 +1,4 @@
-package com.javafxexample;
+package com.javafxexample.controller;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -11,7 +11,7 @@ import javafx.scene.control.Label;
  *
  * @author moscac
  */
-public class SampleController implements Initializable {
+public class MainController implements Initializable {
     
     @FXML
     private Label label;
