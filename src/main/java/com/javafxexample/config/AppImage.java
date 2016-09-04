@@ -6,5 +6,6 @@ package com.javafxexample.config;
  */
 public class AppImage {
 
-    public static final String APP_ICON = "file:resources/com/javafxexample/images/address_book_32.png";
+    public static final String APP_ICON = "file:com/javafxexample/images/address_book_32.png";
+    
 }

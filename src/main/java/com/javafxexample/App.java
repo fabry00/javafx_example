@@ -6,6 +6,7 @@ import com.javafxexample.config.General;
 import com.javafxexample.controller.PersonEditDialogController;
 import com.javafxexample.controller.PersonOverviewController;
 import com.javafxexample.model.Person;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import javafx.application.Application;
@@ -19,6 +20,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 
 /**
  *
@@ -64,6 +66,7 @@ public class App extends Application {
         personData.add(new Person("Anna", "Best"));
         personData.add(new Person("Stefan", "Meier"));
         personData.add(new Person("Martin", "Mueller"));
+        initLogger();
     }
 
     @Override
@@ -75,7 +78,7 @@ public class App extends Application {
 
         // Set the application icon.
         this.primaryStage.getIcons().add(new Image(AppImage.APP_ICON));
-    
+
         initRootLayout();
 
         showPersonOverview();
@@ -182,12 +185,20 @@ public class App extends Application {
     }
 
     private URL getViewURL(String view) {
-         logger.debug("getViewURL: " + view);
+        logger.debug("getViewURL: " + view);
         URL url = getClass().getResource(view);
         if (url == null) {
             logger.error("View not found: " + view);
             System.exit(-1);
         }
         return url;
+    }
+
+    private void initLogger() {
+        File log4jfile = new File(General.LOG_CONF);
+        if (!log4jfile.exists()) {
+            System.err.println(General.LOG_CONF);
+        }
+        PropertyConfigurator.configure(log4jfile.getAbsolutePath());
     }
 }
