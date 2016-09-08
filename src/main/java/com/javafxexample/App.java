@@ -3,22 +3,30 @@ package com.javafxexample;
 import com.javafxexample.config.AppImage;
 import com.javafxexample.config.AppView;
 import com.javafxexample.config.General;
+import com.javafxexample.controller.MainController;
 import com.javafxexample.controller.PersonEditDialogController;
 import com.javafxexample.controller.PersonOverviewController;
 import com.javafxexample.model.Person;
+import com.javafxexample.model.PersonListWrapper;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.prefs.Preferences;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
@@ -57,7 +65,7 @@ public class App extends Application {
          * since otherwise the view would not be in sync with the data. For this
          * purpose, JavaFX introduces some new Collection classes.
          */
-        personData.add(new Person("Hans", "Muster"));
+       /* personData.add(new Person("Hans", "Muster"));
         personData.add(new Person("Ruth", "Mueller"));
         personData.add(new Person("Heinz", "Kurz"));
         personData.add(new Person("Cornelia", "Meier"));
@@ -65,7 +73,7 @@ public class App extends Application {
         personData.add(new Person("Lydia", "Kunz"));
         personData.add(new Person("Anna", "Best"));
         personData.add(new Person("Stefan", "Meier"));
-        personData.add(new Person("Martin", "Mueller"));
+        personData.add(new Person("Martin", "Mueller"));*/
         initLogger();
     }
 
@@ -95,6 +103,10 @@ public class App extends Application {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(getViewURL(AppView.MAIN_VIEW));
             rootLayout = (BorderPane) loader.load();
+
+            // Give the controller access to the main app.
+            MainController controller = loader.getController();
+            controller.setMainApp(this);
 
             // Show the scene containing the root layout.
             Scene scene = new Scene(rootLayout);
@@ -181,6 +193,109 @@ public class App extends Application {
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
             return false;
+        }
+    }
+
+    /**
+     * Returns the person file preference, i.e. the file that was last opened.
+     * The preference is read from the OS specific registry. If no such
+     * preference can be found, null is returned.
+     *
+     * @return
+     */
+    public File getPersonFilePath() {
+        Preferences prefs = Preferences.userNodeForPackage(App.class);
+        String filePath = prefs.get("filePath", null);
+        if (filePath != null) {
+             logger.debug("Registry File getted: "+filePath);
+            return new File(filePath);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Sets the file path of the currently loaded file. The path is persisted in
+     * the OS specific registry.
+     *
+     * @param file the file or null to remove the path
+     */
+    public void setPersonFilePath(File file) {
+        Preferences prefs = Preferences.userNodeForPackage(App.class);
+        if (file != null) {
+            prefs.put("filePath", file.getPath());
+
+            // Update the stage title.
+            primaryStage.setTitle("AddressApp - " + file.getName());
+        } else {
+            prefs.remove("filePath");
+
+            // Update the stage title.
+            primaryStage.setTitle("AddressApp");
+        }
+        
+        logger.debug("Registry File saved: "+file.getAbsolutePath());
+    }
+
+    /**
+     * Loads person data from the specified file. The current person data will
+     * be replaced.
+     *
+     * @param file
+     */
+    public void loadPersonDataFromFile(File file) {
+        try {
+            JAXBContext context = JAXBContext
+                    .newInstance(PersonListWrapper.class);
+            Unmarshaller um = context.createUnmarshaller();
+
+            // Reading XML from the file and unmarshalling.
+            PersonListWrapper wrapper = (PersonListWrapper) um.unmarshal(file);
+
+            personData.clear();
+            personData.addAll(wrapper.getPersons());
+
+            // Save the file path to the registry.
+            setPersonFilePath(file);
+
+        } catch (Exception e) { // catches ANY exception
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Could not load data");
+            alert.setContentText("Could not load data from file:\n" + file.getPath());
+
+            alert.showAndWait();
+        }
+    }
+
+    /**
+     * Saves the current person data to the specified file.
+     *
+     * @param file
+     */
+    public void savePersonDataToFile(File file) {
+        try {
+            JAXBContext context = JAXBContext
+                    .newInstance(PersonListWrapper.class);
+            Marshaller m = context.createMarshaller();
+            m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+
+            // Wrapping our person data.
+            PersonListWrapper wrapper = new PersonListWrapper();
+            wrapper.setPersons(personData);
+
+            // Marshalling and saving XML to the file.
+            m.marshal(wrapper, file);
+            logger.debug("File saved: "+file.getAbsolutePath());
+            // Save the file path to the registry.
+            setPersonFilePath(file);
+        } catch (Exception e) { // catches ANY exception
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Could not save data");
+            alert.setContentText("Could not save data to file:\n" + file.getPath());
+
+            alert.showAndWait();
         }
     }
 

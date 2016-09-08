@@ -28,20 +28,31 @@ RUN \
     echo "===> install Java"  && \
     echo debconf shared/accepted-oracle-license-v1-1 select true | debconf-set-selections  && \
     echo debconf shared/accepted-oracle-license-v1-1 seen true | debconf-set-selections  && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes oracle-java8-installer oracle-java8-set-default maven fakeroot rpm && \
-    \
-        apt-get install -y git && \
-        cd ~ && git clone https://github.com/fabry00/javafx_example && \
-    \
-    echo "===> installing intellj" && \
-    cd ~ && wget -v https://download.jetbrains.com/idea/ideaIC-2016.2.3.tar.gz && \
-    tar -xvzf ideaIC-2016.2.3.tar.gz && \ 
-    rm ideaIC-2016.2.3.tar.gz && \
-    echo "===> clean up..."  && \
-    rm -rf /var/cache/oracle-jdk8-installer && \
-    apt-get clean  && \
-    rm -rf /var/lib/apt/lists/*
- 
-# cd to the javafx_example directory and execute the jar.
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes oracle-java8-installer oracle-java8-set-default maven fakeroot rpm
+    
+RUN echo "===> installing netbeans"
+RUN wget -v http://download.netbeans.org/netbeans/8.0.1/final/bundles/netbeans-8.0.1-javase-linux.sh -O /tmp/netbeans.sh -q && \
+    chmod +x /tmp/netbeans.sh && \
+    echo 'Installing netbeans' && \
+    /tmp/netbeans.sh --silent --state /tmp/state.xml && \
+    rm -rf /tmp/*
 
-CMD cd ~/javafx_example && ~/idea-IC-162.1812.17/bin/./idea.sh &
+ADD run /usr/local/bin/netbeans
+RUN chmod +x /usr/local/bin/netbeans && \
+    mkdir -p /home/user && \
+    echo "user:x:1000:1000:user,,,:/home/user:/bin/bash" >> /etc/passwd && \
+    echo "user:x:1000:" >> /etc/group && \
+    echo "user ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/user && \
+    chmod 0440 /etc/sudoers.d/user && \
+    chown user:user -R /home/user
+
+RUN echo "===> Cloning project"
+RUN apt-get install -y git && \
+    mkdir /home/user/projects && \
+    cd /home/user/projects && \
+    git clone https://github.com/fabry00/javafx_example
+
+USER user
+ENV HOME /home/user
+WORKDIR /home/user
+CMD /usr/local/bin/netbeans

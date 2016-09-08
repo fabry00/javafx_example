@@ -3,6 +3,7 @@ package com.javafxexample.util;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import javax.xml.bind.annotation.adapters.XmlAdapter;
 
 /**
  *
@@ -61,5 +62,24 @@ public class DateUtil {
     public boolean validDate(String dateString) {
         // Try to parse the String.
         return new DateUtil().parse(dateString) != null;
+    }
+
+    /**
+     * Adapter (for JAXB) to convert between the LocalDate and the ISO 8601
+     * String representation of the date such as '2012-12-03'.
+     *
+     * @author Marco Jakob
+     */
+    public static class LocalDateAdapter extends XmlAdapter<String, LocalDate> {
+
+        @Override
+        public LocalDate unmarshal(String v) throws Exception {
+            return LocalDate.parse(v);
+        }
+
+        @Override
+        public String marshal(LocalDate v) throws Exception {
+            return v.toString();
+        }
     }
 }
