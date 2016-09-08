@@ -3,11 +3,13 @@ package com.javafxexample;
 import com.javafxexample.config.AppImage;
 import com.javafxexample.config.AppView;
 import com.javafxexample.config.General;
+import com.javafxexample.controller.BirthdayStatisticsController;
 import com.javafxexample.controller.MainController;
 import com.javafxexample.controller.PersonEditDialogController;
 import com.javafxexample.controller.PersonOverviewController;
 import com.javafxexample.model.Person;
 import com.javafxexample.model.PersonListWrapper;
+import com.javafxexample.util.DataStoreManager;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -65,7 +67,7 @@ public class App extends Application {
          * since otherwise the view would not be in sync with the data. For this
          * purpose, JavaFX introduces some new Collection classes.
          */
-       /* personData.add(new Person("Hans", "Muster"));
+        /* personData.add(new Person("Hans", "Muster"));
         personData.add(new Person("Ruth", "Mueller"));
         personData.add(new Person("Heinz", "Kurz"));
         personData.add(new Person("Cornelia", "Meier"));
@@ -90,6 +92,11 @@ public class App extends Application {
         initRootLayout();
 
         showPersonOverview();
+
+        File lastFile = getPersonFilePath();
+        if (lastFile != null) {
+            loadPersonDataFromFile(lastFile);
+        }
 
     }
 
@@ -207,7 +214,7 @@ public class App extends Application {
         Preferences prefs = Preferences.userNodeForPackage(App.class);
         String filePath = prefs.get("filePath", null);
         if (filePath != null) {
-             logger.debug("Registry File getted: "+filePath);
+            logger.debug("Registry File getted: " + filePath);
             return new File(filePath);
         } else {
             return null;
@@ -223,6 +230,7 @@ public class App extends Application {
     public void setPersonFilePath(File file) {
         Preferences prefs = Preferences.userNodeForPackage(App.class);
         if (file != null) {
+            logger.debug("Registry File saved: " + file.getAbsolutePath());
             prefs.put("filePath", file.getPath());
 
             // Update the stage title.
@@ -233,8 +241,34 @@ public class App extends Application {
             // Update the stage title.
             primaryStage.setTitle("AddressApp");
         }
-        
-        logger.debug("Registry File saved: "+file.getAbsolutePath());
+
+    }
+
+    /**
+     * Opens a dialog to show birthday statistics.
+     */
+    public void showBirthdayStatistics() {
+        try {
+            // Load the fxml file and create a new stage for the popup.
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(getViewURL(AppView.B_STATS_VIEW));
+            AnchorPane page = (AnchorPane) loader.load();
+            Stage dialogStage = new Stage();
+            dialogStage.setTitle("Birthday Statistics");
+            dialogStage.initModality(Modality.WINDOW_MODAL);
+            dialogStage.initOwner(primaryStage);
+            Scene scene = new Scene(page);
+            dialogStage.setScene(scene);
+
+            // Set the persons into the controller.
+            BirthdayStatisticsController controller = loader.getController();
+            controller.setPersonData(personData);
+
+            dialogStage.show();
+
+        } catch (IOException e) {
+            logger.error(e);
+        }
     }
 
     /**
@@ -245,15 +279,8 @@ public class App extends Application {
      */
     public void loadPersonDataFromFile(File file) {
         try {
-            JAXBContext context = JAXBContext
-                    .newInstance(PersonListWrapper.class);
-            Unmarshaller um = context.createUnmarshaller();
-
-            // Reading XML from the file and unmarshalling.
-            PersonListWrapper wrapper = (PersonListWrapper) um.unmarshal(file);
-
-            personData.clear();
-            personData.addAll(wrapper.getPersons());
+            DataStoreManager dataStore = new DataStoreManager();
+            dataStore.loadPersonDataFromFile(file, personData);
 
             // Save the file path to the registry.
             setPersonFilePath(file);
@@ -275,18 +302,10 @@ public class App extends Application {
      */
     public void savePersonDataToFile(File file) {
         try {
-            JAXBContext context = JAXBContext
-                    .newInstance(PersonListWrapper.class);
-            Marshaller m = context.createMarshaller();
-            m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-
-            // Wrapping our person data.
-            PersonListWrapper wrapper = new PersonListWrapper();
-            wrapper.setPersons(personData);
-
-            // Marshalling and saving XML to the file.
-            m.marshal(wrapper, file);
-            logger.debug("File saved: "+file.getAbsolutePath());
+            DataStoreManager dataStore = new DataStoreManager();
+            dataStore.savePersonDataToFile(file, personData);
+            
+            logger.debug("File saved: " + file.getAbsolutePath());
             // Save the file path to the registry.
             setPersonFilePath(file);
         } catch (Exception e) { // catches ANY exception
